@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+
+  <Id>e695fe73-7e55-4e00-bfe5-0da2c6bdd678</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Yuki</ProviderName>
+  <DefaultLocale>ja-JP</DefaultLocale>
+  <DisplayName DefaultValue="Shape Palette" />
+  <Description DefaultValue="図形をタブ別に並べ、クリックでスライドに挿入するパレット" />
+
+  <!-- 開発サーバのURL。https://yuuukichiiii.github.io/PowerPoint_clipboard を自分の配信先に合わせる -->
+  <IconUrl DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/assets/icon-80.png" />
+
+  <Hosts>
+    <Host Name="Presentation" />
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/taskpane.html" />
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Presentation">
+        <DesktopFormFactor>
+          <!-- ショートカット関数のロード元 -->
+          <FunctionFile resid="Commands.Url" />
+
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="ShapePalette.Group">
+                <Label resid="Group.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16" />
+                  <bt:Image size="32" resid="Icon.32" />
+                  <bt:Image size="80" resid="Icon.80" />
+                </Icon>
+                <Control xsi:type="Button" id="ShapePalette.OpenButton">
+                  <Label resid="OpenButton.Label" />
+                  <Supertip>
+                    <Title resid="OpenButton.Label" />
+                    <Description resid="OpenButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16" />
+                    <bt:Image size="32" resid="Icon.32" />
+                    <bt:Image size="80" resid="Icon.80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ShapePaletteTaskpane</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16" DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/assets/icon-16.png" />
+        <bt:Image id="Icon.32" DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/assets/icon-32.png" />
+        <bt:Image id="Icon.80" DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/assets/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/taskpane.html" />
+        <bt:Url id="Commands.Url" DefaultValue="https://yuuukichiiii.github.io/PowerPoint_clipboard/commands.html" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="Group.Label" DefaultValue="Shape Palette" />
+        <bt:String id="OpenButton.Label" DefaultValue="パレットを開く" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="OpenButton.Tooltip" DefaultValue="図形パレットを開きます（Ctrl+Shift+1）" />
+      </bt:LongStrings>
+    </Resources>
+
+    <!-- ショートカットキーの定義ファイル -->
+    <ExtendedOverrides Url="https://yuuukichiiii.github.io/PowerPoint_clipboard/shortcuts.json" />
+  </VersionOverrides>
+</OfficeApp>

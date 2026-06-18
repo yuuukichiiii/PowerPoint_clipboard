@@ -1,0 +1,30 @@
+{
+  "actions": [
+    {
+      "id": "showTaskpane",
+      "type": "ExecuteFunction",
+      "name": "Shape Palette を表示"
+    },
+    {
+      "id": "hideTaskpane",
+      "type": "ExecuteFunction",
+      "name": "Shape Palette を非表示"
+    }
+  ],
+  "shortcuts": [
+    {
+      "action": "showTaskpane",
+      "key": {
+        "default": "Ctrl+Shift+1",
+        "mac": "Cmd+Shift+1"
+      }
+    },
+    {
+      "action": "hideTaskpane",
+      "key": {
+        "default": "Ctrl+Shift+2",
+        "mac": "Cmd+Shift+2"
+      }
+    }
+  ]
+}
