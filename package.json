@@ -1,0 +1,15 @@
+{
+  "name": "shape-palette",
+  "version": "1.0.0",
+  "description": "PowerPoint 用 図形クリップボード／パレット タスクペインアドイン",
+  "private": true,
+  "scripts": {
+    "start": "office-addin-debugging start manifest.xml desktop --app powerpoint --no-debug",
+    "stop": "office-addin-debugging stop manifest.xml",
+    "validate": "office-addin-manifest validate manifest.xml"
+  },
+  "devDependencies": {
+    "office-addin-debugging": "^6.0.0",
+    "office-addin-manifest": "^2.0.0"
+  }
+}

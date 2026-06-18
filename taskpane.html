@@ -231,7 +231,7 @@ const Store={
   }
 };
 const KEY="shapePalette.v3";
-const inPowerPoint=(typeof PowerPoint!=="undefined");
+let inPowerPoint=(typeof PowerPoint!=="undefined");
 const RECENT_MAX=24;
 
 /* ---------- 色正規化 ---------- */
@@ -612,10 +612,17 @@ function wire(){
   document.addEventListener("mousemove",()=>{},{once:true});
 }
 async function boot(){await load();wire();renderTabs();renderGrid();}
+let _booted=false;
+function startBoot(){if(_booted)return;_booted=true;boot();}
 if(typeof Office!=="undefined"&&Office.onReady){
-  Office.onReady().then(boot).catch(boot);
-  document.addEventListener("DOMContentLoaded",()=>{if(!$tabs.children.length)boot();});
-}else{document.addEventListener("DOMContentLoaded",boot);}
+  Office.onReady().then(info=>{
+    // ホスト判定は onReady 後に行う（PowerPoint グローバルはこの時点で利用可能）
+    inPowerPoint=(typeof PowerPoint!=="undefined")||!!(info&&Office.HostType&&info.host===Office.HostType.PowerPoint);
+    startBoot();
+  }).catch(()=>startBoot());
+  // 安全策: onReady が来ない環境では遅延してデモ起動
+  document.addEventListener("DOMContentLoaded",()=>{setTimeout(startBoot,2000);});
+}else{document.addEventListener("DOMContentLoaded",startBoot);}
 })();
 </script>
 </body>
