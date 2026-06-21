@@ -13,3 +13,7 @@ ShapePaletteDesktop/**/.vs/
 ShapePaletteDesktop/packages/
 *.user
 *.suo
+
+# インストーラー出力（成果物の exe は build-installer.ps1 で生成）と秘密鍵
+ShapePaletteDesktop/installer/Output/
+*.pfx
