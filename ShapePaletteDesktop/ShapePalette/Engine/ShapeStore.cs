@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using Microsoft.Office.Core;
+using Newtonsoft.Json;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 using ShapePalette.Storage;
 
@@ -80,10 +83,10 @@ namespace ShapePalette.Engine
             var pasted = slide.Shapes.Paste();
             PowerPoint.Shape thumbShape = (pasted.Count > 1) ? pasted.Group() : pasted[1];
 
-            // サムネ PNG を書き出し
+            // サムネ PNG を高解像度で書き出し
             string thumbFile = Guid.NewGuid().ToString("N") + ".png";
             string thumbPath = Path.Combine(PaletteData.ThumbsDir, thumbFile);
-            try { thumbShape.Export(thumbPath, PowerPoint.PpShapeFormat.ppShapeFormatPNG, 0, 0, PowerPoint.PpExportMode.ppRelativeToSlide); }
+            try { ExportShapeThumb(thumbShape, thumbPath); }
             catch (Exception ex) { Log.Write("Export thumb EX: " + ex.Message); thumbFile = null; }
 
             int slideId = slide.SlideID;
@@ -191,6 +194,125 @@ namespace ShapePalette.Engine
             slideY = (screenY - y0) / sy;
             return true;
         }
+
+        // 図形をサムネ PNG として書き出す（既定サイズ・縦横比/余白とも自然な ppRelativeToSlide）。
+        private void ExportShapeThumb(PowerPoint.Shape shp, string path)
+        {
+            shp.Export(path, PowerPoint.PpShapeFormat.ppShapeFormatPNG, 0, 0, PowerPoint.PpExportMode.ppRelativeToSlide);
+        }
+
+        /// <summary>既存の全アイテムのサムネを高解像度で再生成する。再生成数を返す。</summary>
+        public int RegenerateThumbnails()
+        {
+            var lib = EnsureLibrary();
+            int n = 0;
+            foreach (var tab in Data.Tabs)
+            {
+                foreach (var item in tab.Items)
+                {
+                    try
+                    {
+                        var s = lib.Slides.FindBySlideID(item.SlideId);
+                        if (s.Shapes.Count == 0) continue;
+                        PowerPoint.Shape shp = s.Shapes.Count > 1 ? s.Shapes.Range().Group() : s.Shapes[1];
+                        string file = string.IsNullOrEmpty(item.ThumbFile) ? Guid.NewGuid().ToString("N") + ".png" : item.ThumbFile;
+                        ExportShapeThumb(shp, Path.Combine(PaletteData.ThumbsDir, file));
+                        item.ThumbFile = file;
+                        n++;
+                    }
+                    catch (Exception ex) { Log.Write("Regen thumb EX: " + ex.Message); }
+                }
+            }
+            lib.Save();
+            Data.Save();
+            return n;
+        }
+
+        #region エクスポート / インポート
+
+        /// <summary>ライブラリ pptx ＋ 設定 ＋ サムネを 1 ファイル(.sppal=zip)に書き出す。</summary>
+        public void ExportTo(string path)
+        {
+            if (_lib != null) { _lib.Save(); }
+            else if (!File.Exists(PaletteData.LibraryPath)) { EnsureLibrary().Save(); }
+            Data.Save();
+
+            if (File.Exists(path)) File.Delete(path);
+            using (var zip = ZipFile.Open(path, ZipArchiveMode.Create))
+            {
+                if (File.Exists(PaletteData.LibraryPath)) zip.CreateEntryFromFile(PaletteData.LibraryPath, "library.pptx");
+                if (File.Exists(PaletteData.DataPath)) zip.CreateEntryFromFile(PaletteData.DataPath, "palette.json");
+                if (Directory.Exists(PaletteData.ThumbsDir))
+                    foreach (var f in Directory.GetFiles(PaletteData.ThumbsDir))
+                        zip.CreateEntryFromFile(f, "thumbs/" + Path.GetFileName(f));
+            }
+            Log.Write("Exported: " + path);
+        }
+
+        /// <summary>.sppal を読み込み、取り込んだタブを現在のパレットへ追加（マージ）する。追加アイテム数を返す。</summary>
+        public int ImportMerge(string path)
+        {
+            string tmp = Path.Combine(Path.GetTempPath(), "sp_import_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(tmp);
+            try
+            {
+                ZipFile.ExtractToDirectory(path, tmp);
+                string impLibPath = Path.Combine(tmp, "library.pptx");
+                string impDataPath = Path.Combine(tmp, "palette.json");
+                string impThumbs = Path.Combine(tmp, "thumbs");
+                if (!File.Exists(impLibPath) || !File.Exists(impDataPath))
+                    throw new InvalidOperationException("正しい Shape Palette ファイルではありません。");
+
+                var impData = JsonConvert.DeserializeObject<PaletteData>(File.ReadAllText(impDataPath));
+                if (impData?.Tabs == null) return 0;
+
+                // 取り込み元ライブラリの SlideId -> 並び順(index) を作る
+                var impLib = _app.Presentations.Open(impLibPath, MsoTriState.msoTrue, MsoTriState.msoFalse, MsoTriState.msoFalse);
+                var idToIndex = new Dictionary<int, int>();
+                foreach (PowerPoint.Slide s in impLib.Slides) idToIndex[s.SlideID] = s.SlideIndex;
+                impLib.Close();
+
+                // 取り込み元の全スライドを現在のライブラリ末尾へコピー
+                var curLib = EnsureLibrary();
+                int baseCount = curLib.Slides.Count;
+                curLib.Slides.InsertFromFile(impLibPath, baseCount);
+
+                int added = 0;
+                foreach (var impTab in impData.Tabs)
+                {
+                    var newTab = new PaletteTab { Name = impTab.Name };
+                    foreach (var impItem in impTab.Items)
+                    {
+                        if (!idToIndex.TryGetValue(impItem.SlideId, out int idx)) continue;
+                        int newSlideId = curLib.Slides[baseCount + idx].SlideID;
+
+                        string newThumb = null;
+                        if (!string.IsNullOrEmpty(impItem.ThumbFile))
+                        {
+                            var srcT = Path.Combine(impThumbs, impItem.ThumbFile);
+                            if (File.Exists(srcT))
+                            {
+                                newThumb = Guid.NewGuid().ToString("N") + ".png";
+                                File.Copy(srcT, Path.Combine(PaletteData.ThumbsDir, newThumb), true);
+                            }
+                        }
+                        newTab.Items.Add(new PaletteItem { Name = impItem.Name, SlideId = newSlideId, ThumbFile = newThumb });
+                        added++;
+                    }
+                    Data.Tabs.Add(newTab);
+                }
+                curLib.Save();
+                Data.Save();
+                Log.Write("Imported: " + path + " (+" + added + ")");
+                return added;
+            }
+            finally
+            {
+                try { Directory.Delete(tmp, true); } catch { }
+            }
+        }
+
+        #endregion
 
         public string ThumbPathOf(PaletteItem item)
         {

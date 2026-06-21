@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -124,6 +125,57 @@ namespace ShapePalette.UI
             TabScroll.ScrollToRightEnd();
         }
 
+        private void BtnMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if (BtnMenu.ContextMenu != null)
+            {
+                BtnMenu.ContextMenu.PlacementTarget = BtnMenu;
+                BtnMenu.ContextMenu.IsOpen = true;
+            }
+        }
+
+        private void Export_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Shape Palette (*.sppal)|*.sppal",
+                FileName = "shape-palette.sppal",
+                Title = "パレットをエクスポート"
+            };
+            if (dlg.ShowDialog() != true) return;
+            try { _store.ExportTo(dlg.FileName); SetStatus("エクスポートしました"); }
+            catch (Exception ex) { SetStatus("エクスポート失敗: " + ex.Message); Log.Write("Export EX: " + ex); }
+        }
+
+        private void Import_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Shape Palette (*.sppal)|*.sppal|すべてのファイル (*.*)|*.*",
+                Title = "パレットをインポート"
+            };
+            if (dlg.ShowDialog() != true) return;
+            try
+            {
+                int n = _store.ImportMerge(dlg.FileName);
+                BuildTabs();
+                LoadTiles();
+                SetStatus(n + " 個の図形をインポートしました");
+            }
+            catch (Exception ex) { SetStatus("インポート失敗: " + ex.Message); Log.Write("Import EX: " + ex); }
+        }
+
+        private void Regen_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int n = _store.RegenerateThumbnails();
+                LoadTiles();
+                SetStatus(n + " 個のサムネを再生成しました");
+            }
+            catch (Exception ex) { SetStatus("再生成失敗: " + ex.Message); Log.Write("Regen EX: " + ex); }
+        }
+
         // マウスホイールでタブを左右スクロール
         private void TabScroll_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -199,12 +251,35 @@ namespace ShapePalette.UI
                 data.SetData("ShapePaletteToken", _dragVM.Item.Id);
                 DragDrop.DoDragDrop((DependencyObject)sender, data, DragDropEffects.Copy);
 
-                var p = System.Windows.Forms.Cursor.Position;
-                _store.DropInsert(_dragVM.Item, p.X, p.Y);
+                // カーソル取得と挿入を Per-Monitor DPI(PMv2) コンテキストで行い、
+                // PowerPoint の PointsToScreenPixels（真の物理px）と座標系を揃える（4K 125%等のズレ対策）。
+                IntPtr prevCtx = SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+                try
+                {
+                    GetPhysicalCursorPos(out POINT pt);
+                    _store.DropInsert(_dragVM.Item, pt.X, pt.Y);
+                }
+                finally
+                {
+                    if (prevCtx != IntPtr.Zero) SetThreadDpiAwarenessContext(prevCtx);
+                }
                 SetStatus("配置しました: " + _dragVM.Name);
             }
             catch (Exception ex) { SetStatus(ex.Message); Log.Write("Drag EX: " + ex); }
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT { public int X; public int Y; }
+
+        // 物理スクリーン座標を返す
+        [DllImport("user32.dll")]
+        private static extern bool GetPhysicalCursorPos(out POINT lpPoint);
+
+        // スレッドの DPI 認識コンテキストを切り替える（Windows 10 1607+）
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetThreadDpiAwarenessContext(IntPtr dpiContext);
+
+        private static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);
 
         private void Tile_GiveFeedback(object sender, GiveFeedbackEventArgs e)
         {

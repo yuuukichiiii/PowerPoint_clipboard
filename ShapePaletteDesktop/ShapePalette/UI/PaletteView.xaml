@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ShapePalette.UI"
              FontFamily="Segoe UI Variable Text, Segoe UI"
-             Background="#F7F8FA" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display">
+             Background="#F7F8FA" SnapsToDevicePixels="True" UseLayoutRounding="True"
+             TextOptions.TextFormattingMode="Display">
     <UserControl.Resources>
         <!-- ===== Design tokens (Light x Blue) ===== -->
         <SolidColorBrush x:Key="Bg"        Color="#F7F8FA"/>
@@ -166,8 +167,21 @@
                           PreviewMouseWheel="TabScroll_PreviewMouseWheel">
                 <StackPanel x:Name="TabStrip" Orientation="Horizontal"/>
             </ScrollViewer>
-            <Button Grid.Column="1" x:Name="BtnAddTab" Style="{StaticResource GhostButton}" Content="+"
-                    ToolTip="タブを追加" Click="BtnAddTab_Click"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="BtnAddTab" Style="{StaticResource GhostButton}" Content="+"
+                        ToolTip="タブを追加" Click="BtnAddTab_Click"/>
+                <Button x:Name="BtnMenu" Style="{StaticResource GhostButton}" Content="⋯"
+                        ToolTip="メニュー" Click="BtnMenu_Click">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="パレットをエクスポート..." Click="Export_Click"/>
+                            <MenuItem Header="パレットをインポート..." Click="Import_Click"/>
+                            <Separator/>
+                            <MenuItem Header="サムネイルを再生成" Click="Regen_Click"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!-- Primary action -->

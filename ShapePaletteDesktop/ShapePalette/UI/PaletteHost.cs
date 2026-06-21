@@ -26,6 +26,12 @@ namespace ShapePalette.UI
             BackColor = System.Drawing.Color.FromArgb(247, 248, 250);
         }
 
+        private void PositionHost()
+        {
+            if (_host == null) return;
+            _host.Bounds = new System.Drawing.Rectangle(0, -1, ClientSize.Width, ClientSize.Height + 1);
+        }
+
         public void Initialize(PowerPoint.Application app)
         {
             try
@@ -34,9 +40,16 @@ namespace ShapePalette.UI
                 _view = new PaletteView();
                 _view.Initialize(_store);
 
-                _host = new ElementHost { Dock = DockStyle.Fill, Child = _view };
+                _host = new ElementHost
+                {
+                    Child = _view,
+                    BackColor = BackColor   // 未描画部分が黒線にならないよう地色に合わせる
+                };
                 Controls.Clear();
                 Controls.Add(_host);
+                // ElementHost 上端に出る 1px の継ぎ目を見出しバー下へ逃がす（親がクリップ）
+                PositionHost();
+                Resize += (s, e) => PositionHost();
             }
             catch (Exception ex)
             {
