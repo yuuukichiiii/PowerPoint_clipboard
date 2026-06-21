@@ -75,6 +75,26 @@ namespace ShapePalette
             catch (Exception ex) { Log.Write("OnOpenPalette EX: " + ex); }
         }
 
+        // リボンボタンのカスタムアイコン
+        public stdole.IPictureDisp GetButtonImage(Core.IRibbonControl control)
+        {
+            try
+            {
+                if (_buttonImage == null)
+                {
+                    using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("ShapePalette.Assets.icon.png"))
+                    {
+                        if (s == null) { Log.Write("icon resource not found"); return null; }
+                        _buttonImage = System.Drawing.Image.FromStream(s);
+                    }
+                }
+                return PictureConverter.ToPictureDisp(_buttonImage);
+            }
+            catch (Exception ex) { Log.Write("GetButtonImage EX: " + ex); return null; }
+        }
+
+        private static System.Drawing.Image _buttonImage;
+
         #endregion
 
         #region ICustomTaskPaneConsumer

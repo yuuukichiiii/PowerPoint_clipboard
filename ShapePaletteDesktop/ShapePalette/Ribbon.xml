@@ -7,7 +7,7 @@
           <button id="ShapePaletteOpenButton"
                   label="パレットを開く"
                   size="large"
-                  imageMso="HappyFace"
+                  getImage="GetButtonImage"
                   onAction="OnOpenPalette"
                   screentip="図形パレット"
                   supertip="図形パレットの作業ウィンドウを開閉します。" />

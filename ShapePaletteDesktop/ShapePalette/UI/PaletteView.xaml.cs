@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -16,6 +18,17 @@ namespace ShapePalette.UI
         private ShapeStore _store;
         private readonly ObservableCollection<TileVM> _tiles = new ObservableCollection<TileVM>();
 
+        // タイル幅（px）。スライダーとタイルの幅・サムネ高さがこれにバインドする。
+        public static readonly DependencyProperty TileWidthProperty =
+            DependencyProperty.Register("TileWidth", typeof(double), typeof(PaletteView),
+                new PropertyMetadata(92.0));
+
+        public double TileWidth
+        {
+            get { return (double)GetValue(TileWidthProperty); }
+            set { SetValue(TileWidthProperty, value); }
+        }
+
         public PaletteView()
         {
             InitializeComponent();
@@ -25,9 +38,17 @@ namespace ShapePalette.UI
         public void Initialize(ShapeStore store)
         {
             _store = store;
+            TileWidth = store.Data.Zoom;
             BuildTabs();
             LoadTiles();
             SetStatus("");
+        }
+
+        private void ZoomSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_store == null) return;
+            _store.Data.Zoom = e.NewValue;
+            _store.Data.Save();
         }
 
         // ===== タブ =====
@@ -195,6 +216,21 @@ namespace ShapePalette.UI
         {
             return Microsoft.VisualBasic.Interaction.InputBox(caption, "Shape Palette", def);
         }
+    }
+
+    /// <summary>値 × パラメータ（比率）を返すコンバータ。サムネ高さ＝タイル幅×比率 に使う。</summary>
+    public class RatioConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            double v = value is double ? (double)value : 0;
+            double r = 0.62;
+            if (parameter != null) double.TryParse(parameter.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out r);
+            return v * r;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
     }
 
     /// <summary>タイル1個分の表示モデル。</summary>

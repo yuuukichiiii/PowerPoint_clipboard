@@ -24,6 +24,7 @@ namespace ShapePalette.Storage
     public class PaletteData
     {
         public string ActiveTab { get; set; }
+        public double Zoom { get; set; } = 92;   // タイル幅（px）
         public List<PaletteTab> Tabs { get; set; } = new List<PaletteTab>();
 
         public static string DataDir
@@ -89,6 +90,7 @@ namespace ShapePalette.Storage
             if (Tabs.Count == 0)
                 Tabs.Add(new PaletteTab { Name = "図形" });
             if (string.IsNullOrEmpty(ActiveTab)) ActiveTab = Tabs[0].Id;
+            if (Zoom < 64 || Zoom > 200) Zoom = 92;
         }
     }
 }

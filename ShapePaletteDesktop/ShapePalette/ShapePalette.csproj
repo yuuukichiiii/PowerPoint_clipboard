@@ -16,6 +16,10 @@
     <!-- COM 相互運用向けにアセンブリを COM 登録対象にする -->
     <RegisterForComInterop>false</RegisterForComInterop>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <!-- WPF のマークアップコンパイル用一時プロジェクト(_wpftmp)でも参照アセンブリを解決できるよう、
+         NuGet の net48 参照アセンブリを明示（Developer Pack 未導入対策）。 -->
+    <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
+    <FrameworkPathOverride>$(USERPROFILE)\.nuget\packages\microsoft.netframework.referenceassemblies.net48\1.0.3\build\.NETFramework\v4.8</FrameworkPathOverride>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -67,9 +71,13 @@
     <Reference Include="Microsoft.Office.Interop.PowerPoint, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Log.cs" />
+    <Compile Include="PictureConverter.cs" />
     <Compile Include="Storage\PaletteData.cs" />
     <Compile Include="Engine\ShapeStore.cs" />
     <Compile Include="Connect.cs" />
@@ -84,6 +92,8 @@
   <ItemGroup>
     <!-- リボン定義 XML を埋め込みリソースとして同梱 -->
     <EmbeddedResource Include="Ribbon.xml" />
+    <!-- リボン用アイコン -->
+    <EmbeddedResource Include="Assets\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <!-- WPF XAML（マークアップコンパイル対象） -->
