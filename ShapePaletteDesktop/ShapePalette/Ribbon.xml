@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+  <ribbon>
+    <tabs>
+      <tab idMso="TabHome">
+        <group id="ShapePaletteGroup" label="Shape Palette" insertAfterMso="GroupDrawing">
+          <button id="ShapePaletteOpenButton"
+                  label="パレットを開く"
+                  size="large"
+                  imageMso="HappyFace"
+                  onAction="OnOpenPalette"
+                  screentip="図形パレット"
+                  supertip="図形パレットの作業ウィンドウを開閉します。" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

@@ -1,4 +1,15 @@
 node_modules/
 *.log
 .DS_Store
-.claude/
+
+# Claude のローカル設定は除外（スキルは追跡する）
+.claude/*
+!.claude/skills/
+
+# C# / Visual Studio ビルド成果物
+ShapePaletteDesktop/**/bin/
+ShapePaletteDesktop/**/obj/
+ShapePaletteDesktop/**/.vs/
+ShapePaletteDesktop/packages/
+*.user
+*.suo
