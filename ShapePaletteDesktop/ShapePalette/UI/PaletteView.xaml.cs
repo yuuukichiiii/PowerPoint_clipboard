@@ -169,8 +169,54 @@ namespace ShapePalette.UI
             catch (Exception ex) { SetStatus(ex.Message); }
         }
 
+        // ===== ドラッグ&ドロップ挿入 =====
+        private Point _dragStart;
+        private TileVM _dragVM;
+        private bool _dragHappened;
+
+        private void Tile_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStart = e.GetPosition(null);
+            _dragVM = ((FrameworkElement)sender).Tag as TileVM;
+            _dragHappened = false;
+        }
+
+        private void Tile_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed || _dragVM == null || _dragHappened) return;
+            var pos = e.GetPosition(null);
+            if (Math.Abs(pos.X - _dragStart.X) < SystemParameters.MinimumHorizontalDragDistance &&
+                Math.Abs(pos.Y - _dragStart.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+
+            try
+            {
+                _dragHappened = true;
+                _store.CopyItemToClipboard(_dragVM.Item);   // 自前貼り付け用にクリップボードへ
+
+                // PowerPoint が認識しない形式でドラッグ → PowerPoint はドロップを処理しない
+                // （プレースホルダがテキスト編集に入らない）。実挿入は DropInsert で自前に行う。
+                var data = new System.Windows.DataObject();
+                data.SetData("ShapePaletteToken", _dragVM.Item.Id);
+                DragDrop.DoDragDrop((DependencyObject)sender, data, DragDropEffects.Copy);
+
+                var p = System.Windows.Forms.Cursor.Position;
+                _store.DropInsert(_dragVM.Item, p.X, p.Y);
+                SetStatus("配置しました: " + _dragVM.Name);
+            }
+            catch (Exception ex) { SetStatus(ex.Message); Log.Write("Drag EX: " + ex); }
+        }
+
+        private void Tile_GiveFeedback(object sender, GiveFeedbackEventArgs e)
+        {
+            // PowerPoint は形式を受け付けないため既定だと禁止カーソルになる。十字カーソルに固定。
+            e.UseDefaultCursors = false;
+            Mouse.SetCursor(Cursors.Cross);
+            e.Handled = true;
+        }
+
         private void Tile_Click(object sender, RoutedEventArgs e)
         {
+            if (_dragHappened) { _dragHappened = false; return; }   // ドラッグ後のクリックは無視
             var vm = ((FrameworkElement)sender).Tag as TileVM;
             InsertTile(vm);
         }

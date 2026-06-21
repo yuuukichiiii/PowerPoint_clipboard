@@ -123,7 +123,9 @@
         <!-- ===== Tile data template ===== -->
         <DataTemplate x:Key="TileTemplate">
             <Button Style="{StaticResource TileButton}" Click="Tile_Click" Tag="{Binding}" ToolTip="{Binding Name}"
-                    Width="{Binding TileWidth, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                    Width="{Binding TileWidth, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    PreviewMouseLeftButtonDown="Tile_MouseDown" PreviewMouseMove="Tile_MouseMove"
+                    GiveFeedback="Tile_GiveFeedback">
                 <StackPanel>
                     <Border CornerRadius="8" Background="{StaticResource ChipGround}"
                             Height="{Binding TileWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource Ratio}, ConverterParameter=0.62}">
