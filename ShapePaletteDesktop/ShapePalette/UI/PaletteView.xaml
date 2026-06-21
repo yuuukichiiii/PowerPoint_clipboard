@@ -1,0 +1,194 @@
+<UserControl x:Class="ShapePalette.UI.PaletteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI Variable Text, Segoe UI"
+             Background="#F7F8FA" SnapsToDevicePixels="True" TextOptions.TextFormattingMode="Display">
+    <UserControl.Resources>
+        <!-- ===== Design tokens (Light x Blue) ===== -->
+        <SolidColorBrush x:Key="Bg"        Color="#F7F8FA"/>
+        <SolidColorBrush x:Key="Surface"   Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="Border"    Color="#E6E8EC"/>
+        <SolidColorBrush x:Key="Hairline"  Color="#EEF0F3"/>
+        <SolidColorBrush x:Key="Ink"       Color="#0F1115"/>
+        <SolidColorBrush x:Key="Muted"     Color="#6B7280"/>
+        <SolidColorBrush x:Key="Faint"     Color="#9CA3AF"/>
+        <SolidColorBrush x:Key="Accent"    Color="#2563EB"/>
+        <SolidColorBrush x:Key="AccentDk"  Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="AccentSoft" Color="#EFF4FE"/>
+        <SolidColorBrush x:Key="ChipGround" Color="#F2F6FF"/>
+
+        <!-- ===== Primary button ===== -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" CornerRadius="9" Background="{StaticResource Accent}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{StaticResource AccentDk}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#1E40AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ===== Tab pill ===== -->
+        <Style x:Key="TabPill" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="b" CornerRadius="8" Padding="12,6" Background="Transparent">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#EDEFF2"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="{StaticResource AccentSoft}"/>
+                                <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ===== Small ghost icon button (+ etc.) ===== -->
+        <Style x:Key="GhostButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource Muted}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" CornerRadius="8" Padding="9,5" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Background" Value="#EDEFF2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ===== Tile ===== -->
+        <Style x:Key="TileButton" TargetType="Button">
+            <Setter Property="Width" Value="92"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" CornerRadius="11" Background="{StaticResource Surface}"
+                                BorderBrush="{StaticResource Border}" BorderThickness="1" Padding="7">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                                <Setter TargetName="b" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect BlurRadius="14" ShadowDepth="2" Direction="270" Opacity="0.16" Color="#1C2B3A"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ===== Tile data template ===== -->
+        <DataTemplate x:Key="TileTemplate">
+            <Button Style="{StaticResource TileButton}" Click="Tile_Click" Tag="{Binding}" ToolTip="{Binding Name}">
+                <StackPanel>
+                    <Border CornerRadius="8" Background="{StaticResource ChipGround}" Height="62">
+                        <Image Source="{Binding Image}" Stretch="Uniform" Margin="9"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{StaticResource Ink}"
+                               TextTrimming="CharacterEllipsis" TextAlignment="Center" Margin="0,6,0,1"/>
+                </StackPanel>
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="挿入" Click="Ctx_Insert"/>
+                        <MenuItem Header="名前を変更" Click="Ctx_Rename"/>
+                        <Separator/>
+                        <MenuItem Header="削除" Click="Ctx_Delete"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="14,12,10,4">
+            <TextBlock Text="Shape Palette" FontSize="14.5" FontWeight="SemiBold" Foreground="{StaticResource Ink}" VerticalAlignment="Center"/>
+        </Grid>
+
+        <!-- Tabs (横スクロール: マウスホイールで左右) -->
+        <Grid Grid.Row="1" Margin="8,2,8,2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ScrollViewer Grid.Column="0" x:Name="TabScroll"
+                          HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"
+                          PreviewMouseWheel="TabScroll_PreviewMouseWheel">
+                <StackPanel x:Name="TabStrip" Orientation="Horizontal"/>
+            </ScrollViewer>
+            <Button Grid.Column="1" x:Name="BtnAddTab" Style="{StaticResource GhostButton}" Content="+"
+                    ToolTip="タブを追加" Click="BtnAddTab_Click"/>
+        </Grid>
+
+        <!-- Primary action -->
+        <Button Grid.Row="2" x:Name="BtnCapture" Style="{StaticResource PrimaryButton}"
+                Content="選択した図形を取り込む" Margin="12,6,12,8" Click="BtnCapture_Click"/>
+
+        <!-- Tiles (幅に応じて 3 -> 2 -> 1 列に折り返し) -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                      Padding="7,0,7,6">
+            <ItemsControl x:Name="TileItems" ItemTemplate="{StaticResource TileTemplate}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Status -->
+        <Border Grid.Row="4" Background="{StaticResource Bg}" BorderBrush="{StaticResource Hairline}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="Status" Text="" FontSize="11" Foreground="{StaticResource Faint}" Margin="14,6,12,7"/>
+        </Border>
+    </Grid>
+</UserControl>

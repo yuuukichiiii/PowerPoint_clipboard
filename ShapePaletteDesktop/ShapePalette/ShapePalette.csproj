@@ -5,6 +5,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{352F4B34-C24C-42FB-AF36-FE303D48BB57}</ProjectGuid>
+    <!-- WPF + C# のプロジェクトフレーバー（XAML マークアップコンパイルを有効化） -->
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <RootNamespace>ShapePalette</RootNamespace>
     <AssemblyName>ShapePalette</AssemblyName>
@@ -42,10 +44,17 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <!-- WPF -->
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsFormsIntegration" />
     <!-- アドイン接続インターフェース（本物の Extensibility PIA） -->
     <Reference Include="Extensibility">
       <HintPath>C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\PublicAssemblies\extensibility.dll</HintPath>
@@ -67,11 +76,21 @@
     <Compile Include="UI\PaletteHost.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\PaletteView.xaml.cs">
+      <DependentUpon>PaletteView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- リボン定義 XML を埋め込みリソースとして同梱 -->
     <EmbeddedResource Include="Ribbon.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- WPF XAML（マークアップコンパイル対象） -->
+    <Page Include="UI\PaletteView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
